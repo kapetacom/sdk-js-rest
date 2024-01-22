@@ -1,6 +1,6 @@
 {
     "name": "@kapeta/sdk-rest",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "REST helpers for use within Javascript contexts (Node, Browser)",
     "exports": {
         ".": {
