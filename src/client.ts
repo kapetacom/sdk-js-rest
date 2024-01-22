@@ -74,9 +74,8 @@ export class RestClientRequest<ReturnType = any> {
     }
 
     public async call(): Promise<ReturnType | null> {
-
         const abortController = new AbortController();
-        let abortTimeout:NodeJS.Timeout|undefined = undefined;
+        let abortTimeout: NodeJS.Timeout | undefined = undefined;
         if (this.timeout > 0) {
             abortTimeout = setTimeout(() => {
                 abortController.abort();
@@ -129,10 +128,9 @@ export class RestClientRequest<ReturnType = any> {
             url: this.url,
             init: {
                 method: this.method,
-                headers
+                headers,
             },
         };
-
 
         this._requestArguments.forEach((requestArgument) => {
             const transport = requestArgument.transport?.toLowerCase() as Lowercase<RequestArgumentTransport>;
@@ -284,13 +282,7 @@ export class BaseRestClient {
         path: string,
         requestArguments: RequestArgument[]
     ): RestClientRequest<ReturnType> {
-        const request = new RestClientRequest<ReturnType>(
-            this.fetcher,
-            this._baseUrl,
-            method,
-            path,
-            requestArguments
-        );
+        const request = new RestClientRequest<ReturnType>(this.fetcher, this._baseUrl, method, path, requestArguments);
         request.withTimeout(this.timeout);
 
         Object.entries(BaseRestClient.globalHeaders).forEach(([key, value]) => {
