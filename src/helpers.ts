@@ -4,7 +4,7 @@
  */
 
 //We want dates as numbers
-import {Pageable, PageableHandler, TYPE_PAGEABLE} from "./pageable";
+import {Pageable, PageableHandler, TYPE_PAGEABLE} from "./pageable.js";
 
 export const JSONStringifyReplacer = function (this: any, key: string, value: any) {
     if (this[key] instanceof Date) {

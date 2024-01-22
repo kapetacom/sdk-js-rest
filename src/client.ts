@@ -2,8 +2,8 @@
  * Copyright 2023 Kapeta Inc.
  * SPDX-License-Identifier: MIT
  */
-import { Fetcher, Options, RequestArgument, RequestArgumentTransport, RequestMethod, RestError } from './types';
-import { JSONStringifyReplacer, toHeaders, toQueryParams } from './helpers';
+import { Fetcher, Options, RequestArgument, RequestArgumentTransport, RequestMethod, RestError } from './types.js';
+import { JSONStringifyReplacer, toHeaders, toQueryParams } from './helpers.js';
 
 export class RestClientRequest<ReturnType = any> {
     private readonly _baseUrl: string;

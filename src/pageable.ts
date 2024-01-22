@@ -16,14 +16,10 @@ export interface SortOrder {
     property: string;
 }
 
-export interface Sort {
-    orders?: SortOrder[];
-}
-
 export interface Pageable {
     page?: number;
     size?: number;
-    sort?: Sort;
+    sort?: SortOrder[];
 }
 
 export interface PageableQuery {
@@ -47,10 +43,10 @@ const QuerySortMapper = (sortParam:string) => {
 export class PageableHandler implements Pageable {
     public readonly page?: number;
     public readonly size?: number;
-    public readonly sort?: Sort;
+    public readonly sort?: SortOrder[];
 
-    constructor(page?: number, size?: number, sort?: Sort) {
-        this.page = page;
+    constructor(page?: number, size?: number, sort?: SortOrder[]) {
+        this.page = page ?? 0;
         this.size = size;
         this.sort = sort;
     }
@@ -90,7 +86,7 @@ export class PageableHandler implements Pageable {
         if (pageable.size !== undefined) {
             params.set('size', pageable.size.toString());
         }
-        pageable.sort?.orders?.forEach((order) => {
+        pageable.sort?.forEach((order) => {
             params.append('sort', `${order.property},${order.direction ? order.direction.toLowerCase() : 'asc'}`);
         });
 
@@ -104,7 +100,7 @@ export class PageableHandler implements Pageable {
         return new PageableHandler(
             map.page && parseInt(map.page) || undefined,
             map.size && parseInt(map.size) || undefined,
-            orders.length > 0 ? { orders } : undefined
+            orders.length > 0 ? orders : undefined
         );
     }
 
@@ -116,7 +112,7 @@ export class PageableHandler implements Pageable {
         return new PageableHandler(
             page && parseInt(page) || undefined,
             size && parseInt(size) || undefined,
-            orders.length > 0 ? { orders } : undefined
+            orders.length > 0 ? orders : undefined
         );
     }
 
@@ -130,7 +126,7 @@ export class PageableHandler implements Pageable {
         return new PageableHandler(
             page && parseInt(page) || undefined,
             size && parseInt(size) || undefined,
-            orders.length > 0 ? { orders } : undefined
+            orders.length > 0 ? orders : undefined
         );
     }
 
