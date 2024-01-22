@@ -1,3 +1,8 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
 //We want dates as numbers
 import {Pageable, PageableHandler, TYPE_PAGEABLE} from "./pageable";
 

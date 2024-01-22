@@ -1,3 +1,7 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
 import type { ParsedQs } from 'qs';
 
 export const TYPE_PAGEABLE = 'Pageable';
