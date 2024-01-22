@@ -16,14 +16,10 @@ export interface SortOrder {
     property: string;
 }
 
-export interface Sort {
-    orders?: SortOrder[];
-}
-
 export interface Pageable {
     page?: number;
     size?: number;
-    sort?: Sort;
+    sort?: SortOrder[];
 }
 
 export interface PageableQuery {
@@ -32,34 +28,32 @@ export interface PageableQuery {
     sort?: string[];
 }
 
-const QuerySortMapper = (sortParam:string) => {
+const QuerySortMapper = (sortParam: string) => {
     const [property, directionString] = sortParam.split(',');
     const direction =
-        directionString && directionString.toLowerCase() === 'desc'
-            ? SortOrderDirection.DESC
-            : SortOrderDirection.ASC;
+        directionString && directionString.toLowerCase() === 'desc' ? SortOrderDirection.DESC : SortOrderDirection.ASC;
     return {
         direction,
         property,
     };
-}
+};
 
 export class PageableHandler implements Pageable {
     public readonly page?: number;
     public readonly size?: number;
-    public readonly sort?: Sort;
+    public readonly sort?: SortOrder[];
 
-    constructor(page?: number, size?: number, sort?: Sort) {
-        this.page = page;
+    constructor(page?: number, size?: number, sort?: SortOrder[]) {
+        this.page = page ?? 0;
         this.size = size;
         this.sort = sort;
     }
 
-    public getPage(defaultPage:number = 0): number {
+    public getPage(defaultPage: number = 0): number {
         return this.page ?? defaultPage;
     }
 
-    public getSize(defaultSize:number = 30): number {
+    public getSize(defaultSize: number = 30): number {
         return this.size ?? defaultSize;
     }
 
@@ -90,7 +84,7 @@ export class PageableHandler implements Pageable {
         if (pageable.size !== undefined) {
             params.set('size', pageable.size.toString());
         }
-        pageable.sort?.orders?.forEach((order) => {
+        pageable.sort?.forEach((order) => {
             params.append('sort', `${order.property},${order.direction ? order.direction.toLowerCase() : 'asc'}`);
         });
 
@@ -98,13 +92,12 @@ export class PageableHandler implements Pageable {
     }
 
     public static fromQueryMap(map: PageableQuery) {
-
         const orders: SortOrder[] = map.sort?.map(QuerySortMapper) ?? [];
 
         return new PageableHandler(
-            map.page && parseInt(map.page) || undefined,
-            map.size && parseInt(map.size) || undefined,
-            orders.length > 0 ? { orders } : undefined
+            (map.page && parseInt(map.page)) || undefined,
+            (map.size && parseInt(map.size)) || undefined,
+            orders.length > 0 ? orders : undefined
         );
     }
 
@@ -114,23 +107,23 @@ export class PageableHandler implements Pageable {
         const orders: SortOrder[] = params.getAll('sort').map(QuerySortMapper);
 
         return new PageableHandler(
-            page && parseInt(page) || undefined,
-            size && parseInt(size) || undefined,
-            orders.length > 0 ? { orders } : undefined
+            (page && parseInt(page)) || undefined,
+            (size && parseInt(size)) || undefined,
+            orders.length > 0 ? orders : undefined
         );
     }
 
     public static fromParsedQs(query: ParsedQs): PageableHandler {
         const page = query.page?.toString();
         const size = query.size?.toString();
-        const orders: SortOrder[] = Array.isArray(query.sort) ?
-            query.sort.map(q => QuerySortMapper(q.toString())) :
-            [ QuerySortMapper(query.sort?.toString() ?? '') ];
+        const orders: SortOrder[] = Array.isArray(query.sort)
+            ? query.sort.map((q) => QuerySortMapper(q.toString()))
+            : [QuerySortMapper(query.sort?.toString() ?? '')];
 
         return new PageableHandler(
-            page && parseInt(page) || undefined,
-            size && parseInt(size) || undefined,
-            orders.length > 0 ? { orders } : undefined
+            (page && parseInt(page)) || undefined,
+            (size && parseInt(size)) || undefined,
+            orders.length > 0 ? orders : undefined
         );
     }
 

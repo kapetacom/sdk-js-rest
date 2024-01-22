@@ -4,7 +4,7 @@
  */
 
 //We want dates as numbers
-import {Pageable, PageableHandler, TYPE_PAGEABLE} from "./pageable";
+import { Pageable, PageableHandler, TYPE_PAGEABLE } from './pageable.js';
 
 export const JSONStringifyReplacer = function (this: any, key: string, value: any) {
     if (this[key] instanceof Date) {
@@ -39,8 +39,8 @@ export const parseRequestValue = (name: string, value: any): { [key: string]: st
     }
 
     if (value instanceof Map) {
-        const out:{[key:string]:string[]} = {
-            [name]: []
+        const out: { [key: string]: string[] } = {
+            [name]: [],
         };
         value.forEach((value, key) => {
             out[name].push(key + '=' + value);
