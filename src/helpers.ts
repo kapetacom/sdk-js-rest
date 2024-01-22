@@ -34,6 +34,20 @@ export const parseRequestValue = (name: string, value: any): { [key: string]: st
         return { [name]: value };
     }
 
+    if (value instanceof Set) {
+        return { [name]: Array.from(value) };
+    }
+
+    if (value instanceof Map) {
+        const out:{[key:string]:string[]} = {
+            [name]: []
+        };
+        value.forEach((value, key) => {
+            out[name].push(key + '=' + value);
+        });
+        return out;
+    }
+
     if ('length' in value && typeof value.length === 'number') {
         // Array-like
         return parseRequestValue(name, Array.from(value));
