@@ -73,14 +73,7 @@ export class RestClientRequest<ReturnType = any> {
         return this.withHeader('Content-Type', contentType);
     }
 
-    // Overload definitions
-    public async call(): Promise<ReturnType | null>;
-    public async call(options: { returnRawResponse: false }): Promise<ReturnType | null>;
-    public async call(options: { returnRawResponse: true }): Promise<Response>;
-
-    public async call(options?: { returnRawResponse: boolean }): Promise<ReturnType | null | Response> {
-        const { returnRawResponse = false } = options || {};
-
+    public async call(): Promise<Response> {
         const abortController = new AbortController();
         let abortTimeout: NodeJS.Timeout | undefined = undefined;
         if (this.timeout > 0) {
@@ -90,9 +83,9 @@ export class RestClientRequest<ReturnType = any> {
         }
 
         const opts = this.createOptions();
-        let result: Response;
+        let response: Response;
         try {
-            result = await this.fetcher(opts.url, {
+            response = await this.fetcher(opts.url, {
                 ...opts.init,
                 signal: abortController.signal,
             });
@@ -101,28 +94,27 @@ export class RestClientRequest<ReturnType = any> {
                 clearTimeout(abortTimeout);
             }
         }
+        return response;
+    }
 
-        if (returnRawResponse) {
-            return result;
-        }
-
-        if (result.status === 404) {
+    public async parse(response: Response): Promise<ReturnType | null> {
+        if (response.status === 404) {
             return null;
         }
 
         let output: ReturnType | null = null;
-        if (result.headers.get('content-type')?.startsWith('application/json')) {
+        if (response.headers.get('content-type')?.startsWith('application/json')) {
             //Only parse json if content-type is application/json
-            const text = await result.text();
+            const text = await response.text();
             output = text ? (JSON.parse(text) as ReturnType) : null;
         }
 
-        if (result.status >= 400) {
+        if (response.status >= 400) {
             const error =
                 output && typeof output === 'object' && 'error' in output && typeof output.error === 'string'
                     ? output.error
                     : 'Unknown error';
-            throw new RestError(error, result);
+            throw new RestError(error, response);
         }
 
         return output;
@@ -311,9 +303,9 @@ export class BaseRestClient {
     /**
      * Executes a request to the specified path using the specified method.
      */
-    public $execute<ReturnType = any>(method: RequestMethod, path: string, requestArguments: RequestArgument[]) {
+    public async $execute<ReturnType = any>(method: RequestMethod, path: string, requestArguments: RequestArgument[]) {
         const request = this.$create<ReturnType>(method, path, requestArguments);
-
-        return request.call();
+        const response = await request.call();
+        return request.parse(response);
     }
 }
