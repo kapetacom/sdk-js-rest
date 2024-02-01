@@ -5,6 +5,51 @@
 import { Fetcher, Options, RequestArgument, RequestArgumentTransport, RequestMethod, RestError } from './types.js';
 import { JSONStringifyReplacer, toHeaders, toQueryParams } from './helpers.js';
 
+export class RestResponse<ReturnType = any> {
+    private readonly _response: Response;
+    private readonly _request: RestClientRequest<ReturnType>;
+
+    constructor(response: Response, request: RestClientRequest<ReturnType>) {
+        this._response = response;
+        this._request = request;
+    }
+
+    public get response() {
+        return this._response;
+    }
+
+    public get request() {
+        return this._request;
+    }
+
+    public async data() {
+        if (!this._response) {
+            throw new Error('Response is null');
+        }
+
+        if (this._response.status === 404) {
+            return null;
+        }
+
+        let output: ReturnType | null = null;
+        if (this._response.headers.get('content-type')?.startsWith('application/json')) {
+            //Only parse json if content-type is application/json
+            const text = await this._response.text();
+            output = text ? (JSON.parse(text) as ReturnType) : null;
+        }
+
+        if (this._response.status >= 400) {
+            const error =
+                output && typeof output === 'object' && 'error' in output && typeof output.error === 'string'
+                    ? output.error
+                    : 'Unknown error';
+            throw new RestError(error, this._response);
+        }
+
+        return output;
+    }
+}
+
 export class RestClientRequest<ReturnType = any> {
     private readonly _baseUrl: string;
     private readonly _path: string;
@@ -12,8 +57,8 @@ export class RestClientRequest<ReturnType = any> {
     private readonly _requestArguments: RequestArgument[];
     private readonly _headers: { [key: string]: string } = {};
     private timeout: number = BaseRestClient.getDefaultTimeout();
-
     private readonly fetcher: Fetcher;
+    private abortController: AbortController;
 
     constructor(
         fetcher: Fetcher,
@@ -31,6 +76,7 @@ export class RestClientRequest<ReturnType = any> {
         this._path = path;
         this._method = method;
         this._requestArguments = requestArguments;
+        this.abortController = new AbortController();
     }
 
     public get url() {
@@ -73,12 +119,11 @@ export class RestClientRequest<ReturnType = any> {
         return this.withHeader('Content-Type', contentType);
     }
 
-    public async call(): Promise<Response> {
-        const abortController = new AbortController();
+    public async call(): Promise<RestResponse<ReturnType>> {
         let abortTimeout: NodeJS.Timeout | undefined = undefined;
         if (this.timeout > 0) {
             abortTimeout = setTimeout(() => {
-                abortController.abort();
+                this.abortController.abort();
             }, this.timeout);
         }
 
@@ -87,37 +132,19 @@ export class RestClientRequest<ReturnType = any> {
         try {
             response = await this.fetcher(opts.url, {
                 ...opts.init,
-                signal: abortController.signal,
+                signal: this.abortController.signal,
             });
         } finally {
             if (abortTimeout) {
                 clearTimeout(abortTimeout);
             }
         }
-        return response;
+
+        return new RestResponse<ReturnType>(response, this);
     }
 
-    public async parse(response: Response): Promise<ReturnType | null> {
-        if (response.status === 404) {
-            return null;
-        }
-
-        let output: ReturnType | null = null;
-        if (response.headers.get('content-type')?.startsWith('application/json')) {
-            //Only parse json if content-type is application/json
-            const text = await response.text();
-            output = text ? (JSON.parse(text) as ReturnType) : null;
-        }
-
-        if (response.status >= 400) {
-            const error =
-                output && typeof output === 'object' && 'error' in output && typeof output.error === 'string'
-                    ? output.error
-                    : 'Unknown error';
-            throw new RestError(error, response);
-        }
-
-        return output;
+    public abort() {
+        this.abortController.abort();
     }
 
     private createOptions(): Options {
@@ -306,6 +333,6 @@ export class BaseRestClient {
     public async $execute<ReturnType = any>(method: RequestMethod, path: string, requestArguments: RequestArgument[]) {
         const request = this.$create<ReturnType>(method, path, requestArguments);
         const response = await request.call();
-        return request.parse(response);
+        return response.data();
     }
 }
