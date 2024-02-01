@@ -73,7 +73,14 @@ export class RestClientRequest<ReturnType = any> {
         return this.withHeader('Content-Type', contentType);
     }
 
-    public async call(): Promise<ReturnType | null> {
+    // Overload definitions
+    public async call(): Promise<ReturnType | null>;
+    public async call(options: { returnRawResponse: false }): Promise<ReturnType | null>;
+    public async call(options: { returnRawResponse: true }): Promise<Response>;
+
+    public async call(options?: { returnRawResponse: boolean }): Promise<ReturnType | null | Response> {
+        const { returnRawResponse = false } = options || {};
+
         const abortController = new AbortController();
         let abortTimeout: NodeJS.Timeout | undefined = undefined;
         if (this.timeout > 0) {
@@ -93,6 +100,10 @@ export class RestClientRequest<ReturnType = any> {
             if (abortTimeout) {
                 clearTimeout(abortTimeout);
             }
+        }
+
+        if (returnRawResponse) {
+            return result;
         }
 
         if (result.status === 404) {
