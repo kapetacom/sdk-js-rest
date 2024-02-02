@@ -10,6 +10,9 @@ export const JSONStringifyReplacer = function (this: any, key: string, value: an
     if (this[key] instanceof Date) {
         return this[key].getTime();
     }
+    if (this[key] instanceof Set) {
+        return Array.from(this[key]);
+    }
     return value;
 };
 
