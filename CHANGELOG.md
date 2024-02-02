@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/kapetacom/sdk-js-rest/compare/v1.1.0...v1.1.1) (2024-02-02)
+
+
+### Bug Fixes
+
+* force version bump ([5f3f86e](https://github.com/kapetacom/sdk-js-rest/commit/5f3f86ec56e28cdfb920b0c03e79d2c5776c77ef))
+
 # [1.1.0](https://github.com/kapetacom/sdk-js-rest/compare/v1.0.1...v1.1.0) (2024-02-01)
 
 
