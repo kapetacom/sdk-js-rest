@@ -107,6 +107,10 @@ export class RestClientRequest<ReturnType = any> {
         return this;
     }
 
+    public hasHeader(key: string): boolean {
+        return key in this._headers;
+    }
+
     public withAuthorization(auth: string) {
         return this.withHeader('Authorization', auth);
     }
