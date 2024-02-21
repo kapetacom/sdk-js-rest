@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/kapetacom/sdk-js-rest/compare/v1.1.1...v1.2.0) (2024-02-21)
+
+
+### Features
+
+* add missing hasHeader method ([ff72234](https://github.com/kapetacom/sdk-js-rest/commit/ff7223417fdb865d00a6cc6f2cc60607c24ff461))
+
 ## [1.1.1](https://github.com/kapetacom/sdk-js-rest/compare/v1.1.0...v1.1.1) (2024-02-02)
 
 
